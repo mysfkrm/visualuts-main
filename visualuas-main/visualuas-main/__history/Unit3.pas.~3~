@@ -1,0 +1,229 @@
+unit Unit3;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, Vcl.Grids, Vcl.DBGrids,
+  Vcl.StdCtrls;
+
+type
+  TForm3 = class(TForm)
+    lblNIK: TLabel;
+    lblNama: TLabel;
+    lblTelp: TLabel;
+    lblEmail: TLabel;
+    lblAlamat: TLabel;
+    lblMember: TLabel;
+    LabelDiskon: TLabel;
+    edtNIK: TEdit;
+    edtNama: TEdit;
+    edtTelp: TEdit;
+    edtEmail: TEdit;
+    edtAlamat: TEdit;
+    ComboBox1: TComboBox;
+    btnBaru: TButton;
+    btnSimpan: TButton;
+    btnEdit: TButton;
+    btnHapus: TButton;
+    btnBatal: TButton;
+    DBGrid1: TDBGrid;
+    procedure ComboBox1Change(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure btnBaruClick(Sender: TObject);
+    procedure btnSimpanClick(Sender: TObject);
+    procedure btnEditClick(Sender: TObject);
+    procedure btnHapusClick(Sender: TObject);
+    procedure btnBatalClick(Sender: TObject);
+    procedure dbgrd1CellClick(Column: TColumn);
+  private
+    { Private declarations }
+    selectedID: Integer;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form3: TForm3;
+
+implementation
+
+{$R *.dfm}
+
+uses
+  Unit1; // Menggunakan unit yang sesuai
+
+procedure TForm3.btnBaruClick(Sender: TObject);
+begin
+  // Aktifkan komponen input dan tombol untuk proses simpan data
+  edtNIK.Enabled := True;
+  edtNama.Enabled := True;
+  edtTelp.Enabled := True;
+  edtEmail.Enabled := True;
+  edtAlamat.Enabled := True;
+  ComboBox1.Enabled := True;
+
+  btnSimpan.Enabled := True;
+  btnEdit.Enabled := False;
+  btnHapus.Enabled := False;
+  btnBatal.Enabled := True;
+
+  // Bersihkan input
+  edtNIK.Clear;
+  edtNama.Clear;
+  edtTelp.Clear;
+  edtEmail.Clear;
+  edtAlamat.Clear;
+  ComboBox1.ItemIndex := -1;
+
+  // Reset selectedID
+  selectedID := 0;
+end;
+
+procedure TForm3.btnSimpanClick(Sender: TObject);
+begin
+  if Form1.ZConnection1.Connected then
+  begin
+    try
+      Form1.ZQuery1.SQL.Clear;
+      Form1.ZQuery1.SQL.Add('INSERT INTO member (nik, nama, telp, email, alamat, member) VALUES (:nik, :nama, :telp, :email, :alamat, :member)');
+      Form1.ZQuery1.ParamByName('nik').AsString := edtNIK.Text;
+      Form1.ZQuery1.ParamByName('nama').AsString := edtNama.Text;
+      Form1.ZQuery1.ParamByName('telp').AsString := edtTelp.Text;
+      Form1.ZQuery1.ParamByName('email').AsString := edtEmail.Text;
+      Form1.ZQuery1.ParamByName('alamat').AsString := edtAlamat.Text;
+      Form1.ZQuery1.ParamByName('member').AsString := ComboBox1.Text;
+      Form1.ZQuery1.ExecSQL;
+
+      Form1.ZQuery1.SQL.Clear;
+      Form1.ZQuery1.SQL.Add('SELECT * FROM member');
+      Form1.ZQuery1.Open;
+      ShowMessage('Data Berhasil Disimpan!');
+    except
+      on E: Exception do
+        ShowMessage('Error saat menyimpan data: ' + E.Message);
+    end;
+  end
+  else
+    ShowMessage('Koneksi ke database tidak berhasil.');
+end;
+
+procedure TForm3.btnEditClick(Sender: TObject);
+begin
+  if selectedID <> 0 then
+  begin
+    try
+      Form1.ZQuery1.SQL.Clear;
+      Form1.ZQuery1.SQL.Add('UPDATE member SET nik = :nik, nama = :nama, telp = :telp, email = :email, alamat = :alamat, member = :member WHERE id = :id');
+      Form1.ZQuery1.ParamByName('nik').AsString := edtNIK.Text;
+      Form1.ZQuery1.ParamByName('nama').AsString := edtNama.Text;
+      Form1.ZQuery1.ParamByName('telp').AsString := edtTelp.Text;
+      Form1.ZQuery1.ParamByName('email').AsString := edtEmail.Text;
+      Form1.ZQuery1.ParamByName('alamat').AsString := edtAlamat.Text;
+      Form1.ZQuery1.ParamByName('member').AsString := ComboBox1.Text;
+      Form1.ZQuery1.ParamByName('id').AsInteger := selectedID;
+      Form1.ZQuery1.ExecSQL;
+
+      Form1.ZQuery1.SQL.Clear;
+      Form1.ZQuery1.SQL.Add('SELECT * FROM member');
+      Form1.ZQuery1.Open;
+      ShowMessage('Data Berhasil Diupdate!');
+    except
+      on E: Exception do
+        ShowMessage('Error saat mengupdate data: ' + E.Message);
+    end;
+  end
+  else
+    ShowMessage('Pilih data yang akan diedit terlebih dahulu.');
+end;
+
+procedure TForm3.btnHapusClick(Sender: TObject);
+begin
+  if selectedID <> 0 then
+  begin
+    try
+      Form1.ZQuery1.SQL.Clear;
+      Form1.ZQuery1.SQL.Add('DELETE FROM member WHERE id = :id');
+      Form1.ZQuery1.ParamByName('id').AsInteger := selectedID;
+      Form1.ZQuery1.ExecSQL;
+
+      Form1.ZQuery1.SQL.Clear;
+      Form1.ZQuery1.SQL.Add('SELECT * FROM member');
+      Form1.ZQuery1.Open;
+      ShowMessage('Data Berhasil Dihapus!');
+    except
+      on E: Exception do
+        ShowMessage('Error saat menghapus data: ' + E.Message);
+    end;
+  end
+  else
+    ShowMessage('Pilih data yang akan dihapus terlebih dahulu.');
+end;
+
+procedure TForm3.btnBatalClick(Sender: TObject);
+begin
+  // Nonaktifkan komponen input dan tombol
+  edtNIK.Enabled := False;
+  edtNama.Enabled := False;
+  edtTelp.Enabled := False;
+  edtEmail.Enabled := False;
+  edtAlamat.Enabled := False;
+  ComboBox1.Enabled := False;
+
+  btnSimpan.Enabled := False;
+  btnEdit.Enabled := False;
+  btnHapus.Enabled := False;
+  btnBatal.Enabled := False;
+
+  // Bersihkan input
+  edtNIK.Clear;
+  edtNama.Clear;
+  edtTelp.Clear;
+  edtEmail.Clear;
+  edtAlamat.Clear;
+  ComboBox1.ItemIndex := -1;
+
+  // Reset selectedID
+  selectedID := 0;
+end;
+
+procedure TForm3.dbgrd1CellClick(Column: TColumn);
+begin
+  if not Form1.ZQuery1.IsEmpty then
+  begin
+    selectedID := Form1.ZQuery1.FieldByName('id').AsInteger;
+    edtNIK.Text := Form1.ZQuery1.FieldByName('nik').AsString;
+    edtNama.Text := Form1.ZQuery1.FieldByName('nama').AsString;
+    edtTelp.Text := Form1.ZQuery1.FieldByName('telp').AsString;
+    edtEmail.Text := Form1.ZQuery1.FieldByName('email').AsString;
+    edtAlamat.Text := Form1.ZQuery1.FieldByName('alamat').AsString;
+    ComboBox1.Text := Form1.ZQuery1.FieldByName('member').AsString;
+
+    // Aktifkan tombol edit dan hapus
+    btnEdit.Enabled := True;
+    btnHapus.Enabled := True;
+  end;
+end;
+
+procedure TForm3.ComboBox1Change(Sender: TObject);
+begin
+  // Memeriksa nilai yang dipilih pada ComboBox
+  if ComboBox1.Text = 'Yes' then
+    LabelDiskon.Caption := 'Diskon : 10%'
+  else if ComboBox1.Text = 'No' then
+    LabelDiskon.Caption := 'Diskon : 5%'
+  else
+    LabelDiskon.Caption := 'Diskon: -';
+end;
+
+procedure TForm3.FormCreate(Sender: TObject);
+begin
+  // Menambahkan item ke ComboBox
+  ComboBox1.Items.Clear;
+  ComboBox1.Items.Add('Yes');
+  ComboBox1.Items.Add('No');
+  ComboBox1.ItemIndex := -1; // Memastikan tidak ada item yang dipilih secara default
+end;
+
+end.
+

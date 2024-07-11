@@ -1,0 +1,65 @@
+unit Unit2;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Data.DB, Vcl.Grids,
+  Vcl.DBGrids;
+
+type
+  TForm2 = class(TForm)
+    Edit1: TEdit;
+    Label1: TLabel;
+    Edit3: TEdit;
+    Edit4: TEdit;
+    Edit5: TEdit;
+    Label2: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    ALAMAT: TLabel;
+    Label6: TLabel;
+    ComboBox1: TComboBox;
+    Button1: TButton;
+    Button2: TButton;
+    Button3: TButton;
+    Button4: TButton;
+    Button5: TButton;
+    DBGrid1: TDBGrid;
+    Edit2: TEdit;
+    Diskon: TLabel; // Ganti nama TLabel menjadi LabelDiskon
+    procedure ComboBox1Change(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  Form2: TForm2;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm2.ComboBox1Change(Sender: TObject);
+begin
+  // Memeriksa nilai yang dipilih pada ComboBox
+  if ComboBox1.Text = 'Yes' then
+    Diskon.Caption := 'Diskon: 10%'
+  else if ComboBox1.Text = 'No' then
+    Diskon.Caption := 'Diskon: 5%'
+  else
+    Diskon.Caption := 'Diskon: -';
+end;
+
+procedure TForm2.FormCreate(Sender: TObject);
+begin
+  // Menambahkan item ke ComboBox
+  ComboBox1.Items.Add('Yes');
+  ComboBox1.Items.Add('No');
+end;
+
+end.
+
